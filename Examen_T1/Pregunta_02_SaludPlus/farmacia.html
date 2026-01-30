@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farmacia Virtual - SaludPlus Online</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .productos {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .producto-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        .producto-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .producto-card h3 {
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .precio {
+            font-size: 1.5rem;
+            color: #f5576c;
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+
+        .btn-comprar {
+            padding: 0.6rem 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-comprar:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🏥 SaludPlus Online</h1>
+            <p class="tagline">Farmacia Virtual</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <h2 style="text-align: center; color: #667eea; margin-bottom: 2rem;">💊 Productos Farmacéuticos</h2>
+        
+        <div class="productos">
+            <div class="producto-card">
+                <div class="producto-icon">💊</div>
+                <h3>Paracetamol 500mg</h3>
+                <p>Caja x 20 tabletas</p>
+                <div class="precio">S/ 8.50</div>
+                <button class="btn-comprar">Agregar al carrito</button>
+            </div>
+
+            <div class="producto-card">
+                <div class="producto-icon">🩹</div>
+                <h3>Vendas Elásticas</h3>
+                <p>Pack x 3 unidades</p>
+                <div class="precio">S/ 15.00</div>
+                <button class="btn-comprar">Agregar al carrito</button>
+            </div>
+
+            <div class="producto-card">
+                <div class="producto-icon">💉</div>
+                <h3>Alcohol Medicinal</h3>
+                <p>Frasco 250ml</p>
+                <div class="precio">S/ 12.00</div>
+                <button class="btn-comprar">Agregar al carrito</button>
+            </div>
+
+            <div class="producto-card">
+                <div class="producto-icon">🌡️</div>
+                <h3>Termómetro Digital</h3>
+                <p>Medición rápida</p>
+                <div class="precio">S/ 35.00</div>
+                <button class="btn-comprar">Agregar al carrito</button>
+            </div>
+
+            <div class="producto-card">
+                <div class="producto-icon">😷</div>
+                <h3>Mascarillas KN95</h3>
+                <p>Caja x 10 unidades</p>
+                <div class="precio">S/ 25.00</div>
+                <button class="btn-comprar">Agregar al carrito</button>
+            </div>
+
+            <div class="producto-card">
+                <div class="producto-icon">🧴</div>
+                <h3>Gel Antibacterial</h3>
+                <p>Frasco 500ml</p>
+                <div class="precio">S/ 18.50</div>
+                <button class="btn-comprar">Agregar al carrito</button>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="index.html" class="btn">← Volver al inicio</a>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 SaludPlus Online - Todos los derechos reservados</p>
+        </div>
+    </footer>
+
+    <script>
+        document.querySelectorAll('.btn-comprar').forEach(btn => {
+            btn.addEventListener('click', function() {
+                alert('Producto agregado al carrito');
+            });
+        });
+    </script>
+</body>
+</html>

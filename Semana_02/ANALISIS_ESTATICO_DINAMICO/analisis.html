@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Busqueda simple </title>
+</head>
+<body>
+    <h1>Buscar Informacion</h1>
+
+    <input type="text" id="buscar">
+    <button onclick="buscar()">Buscar</button>
+
+    <p id="salida"></p>
+
+    <script>
+        function buscar(){
+            var dato=document.getElementById("buscar").value;
+            document.getElementById("salida").innerHTML="Resultado de busqueda:"+dato;
+        }
+
+    </script>
+</body>
+</html><!--<script>alert('Error')</script>-->

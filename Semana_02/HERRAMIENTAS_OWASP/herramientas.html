@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Cibertec</title>
+</head>
+<body>
+    <h2>Regsitro de Alumno</h2>
+    <p>Nombre de Alumno:</p>
+    <input type="text" id="nombre">
+
+    <p>Carrera:</p>
+    <input type="text" id="carrera">
+
+    <br>
+    <button type="button" onclick="registrar()">Registrar</button>
+    <p id="resultado"></p>
+
+    <script>
+        function registrar(){
+            var nombre=document.getElementById("nombre").value.trim();
+            var carrera=document.getElementById("carrera").value.trim();
+
+            if(nombre==="" || carrera ===""){
+                alert("Por favor complete los datos en los campos");
+                return;
+            }
+
+            document.getElementById("resultado").innerText="Alumno:"+nombre+" | Carrera:"+carrera;
+        }
+    </script><!--<script>('Owasp')</script>-->
+</body>
+</html>

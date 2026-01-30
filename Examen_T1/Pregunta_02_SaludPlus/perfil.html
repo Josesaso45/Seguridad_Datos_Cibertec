@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width-device-width, initial-scale=1.0">
+    <title>Mi Perfil - SaludPlus Online</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .perfil-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .perfil-header {
+            text-align: center;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .perfil-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+        }
+
+        .perfil-info {
+            margin-top: 2rem;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .historial {
+            margin-top: 2rem;
+        }
+
+        .historial h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .cita-item {
+            background: #f7fafc;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🏥 SaludPlus Online</h1>
+            <p class="tagline">Mi Perfil</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="perfil-container">
+            <div class="perfil-header">
+                <div class="perfil-icon">👤</div>
+                <h2>José Montero Vilcas</h2>
+                <p>Paciente activo desde 2024</p>
+            </div>
+
+            <div class="perfil-info">
+                <div class="info-row">
+                    <span class="info-label">DNI:</span>
+                    <span>12345678</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Email:</span>
+                    <span>jose.montero@email.com</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Teléfono:</span>
+                    <span>999 888 777</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Dirección:</span>
+                    <span>Av. Universitaria 123, Lima</span>
+                </div>
+            </div>
+
+            <div class="historial">
+                <h3>📋 Historial de Citas</h3>
+                <div class="cita-item">
+                    <strong>Cardiología</strong> - Dr. García<br>
+                    📅 15/01/2026 | ⏰ 10:00 AM<br>
+                    <span style="color: #48bb78;">✓ Completada</span>
+                </div>
+                <div class="cita-item">
+                    <strong>Medicina General</strong> - Dra. López<br>
+                    📅 05/02/2026 | ⏰ 3:00 PM<br>
+                    <span style="color: #667eea;">⏳ Próxima</span>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 2rem;">
+                <a href="index.html" class="btn">← Volver al inicio</a>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 SaludPlus Online - Todos los derechos reservados</p>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OWASP</title>
+</head>
+<body>
+    <h2>Formulario de Comentarios</h2>
+    <p>Escribe un coemntario</p>
+
+    <input type="text" id="comentario">
+    <button onclick="mostrar()">Enviar</button>
+
+    <p id="resultado"></p>
+
+    <script>
+        function mostrar(){
+            var texto=document.getElementById("comentario").value;
+            document.getElementById("resultado").innerHTML=texto;
+        }
+    </script>
+</body>
+</html><!--<script>alert('OWASP')</scsript>-->

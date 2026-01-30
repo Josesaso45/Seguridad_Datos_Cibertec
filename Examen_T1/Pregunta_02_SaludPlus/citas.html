@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendar Cita - SaludPlus Online</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .form-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-submit:hover {
+            transform: scale(1.02);
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 1rem;
+            color: #667eea;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🏥 SaludPlus Online</h1>
+            <p class="tagline">Agendar Cita Médica</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="form-container">
+            <h2 style="color: #667eea; margin-bottom: 1.5rem;">📅 Nueva Cita Médica</h2>
+            
+            <form id="citaForm">
+                <div class="form-group">
+                    <label for="nombre">Nombre Completo:</label>
+                    <input type="text" id="nombre" name="nombre" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="dni">DNI:</label>
+                    <input type="text" id="dni" name="dni" pattern="[0-9]{8}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="especialidad">Especialidad:</label>
+                    <select id="especialidad" name="especialidad" required>
+                        <option value="">Seleccione una especialidad</option>
+                        <option value="medicina_general">Medicina General</option>
+                        <option value="pediatria">Pediatría</option>
+                        <option value="cardiologia">Cardiología</option>
+                        <option value="dermatologia">Dermatología</option>
+                        <option value="traumatologia">Traumatología</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="fecha">Fecha:</label>
+                    <input type="date" id="fecha" name="fecha" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="hora">Hora:</label>
+                    <input type="time" id="hora" name="hora" required>
+                </div>
+
+                <button type="submit" class="btn-submit">Agendar Cita</button>
+            </form>
+
+            <a href="index.html" class="back-link">← Volver al inicio</a>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 SaludPlus Online - Todos los derechos reservados</p>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('citaForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Cita agendada exitosamente. Recibirá una confirmación por correo.');
+            this.reset();
+        });
+    </script>
+</body>
+</html>
