@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NovaMarket - Tu tienda Retail de confianza</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; }
+        header { background-color: #e60000; color: white; padding: 1rem; text-align: center; }
+        nav { background-color: #333; color: white; padding: 0.5rem; text-align: center; }
+        nav a { color: white; text-decoration: none; margin: 0 15px; font-weight: bold; }
+        .container { padding: 20px; max-width: 1000px; margin: auto; background: white; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .product-card { border: 1px solid #ddd; padding: 15px; text-align: center; border-radius: 8px; }
+        .product-card img { max-width: 100%; height: auto; border-radius: 5px; }
+        .price { color: #e60000; font-size: 1.2rem; font-weight: bold; }
+        footer { text-align: center; padding: 20px; background: #333; color: white; margin-top: 20px; }
+        .alert-insecure { background-color: #fff3cd; color: #856404; padding: 10px; text-align: center; border: 1px solid #ffeeba; }
+    </style>
+</head>
+<body>
+    <div class="alert-insecure">
+        ⚠️ Esta conexión no es segura (HTTP). Tu información podría ser vista por terceros.
+    </div>
+    <header>
+        <h1>🛒 NovaMarket (RetailNova)</h1>
+        <p>Lo mejor en tecnología, hogar y moda</p>
+    </header>
+    <nav>
+        <a href="index.html">Inicio</a>
+        <a href="#">Productos</a>
+        <a href="#">Ofertas</a>
+        <a href="login.html">Mi Cuenta (Login)</a>
+    </nav>
+    <div class="container">
+        <h2>Ofertas del Día</h2>
+        <div class="product-grid">
+            <div class="product-card">
+                <h3>Smart TV 55"</h3>
+                <p class="price">S/ 1,499.00</p>
+                <button>Agregar al carrito</button>
+            </div>
+            <div class="product-card">
+                <h3>Smartphone Pro Max</h3>
+                <p class="price">S/ 3,299.00</p>
+                <button>Agregar al carrito</button>
+            </div>
+            <div class="product-card">
+                <h3>Laptop Gamer</h3>
+                <p class="price">S/ 2,899.00</p>
+                <button>Agregar al carrito</button>
+            </div>
+        </div>
+    </div>
+    <footer>
+        <p>&copy; 2026 NovaMarket - Conexión Insegura (Modo de Prueba)</p>
+    </footer>
+</body>
+</html>
