@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación Phishing - Caso Clinton / Spear Phishing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body { background: #f0f4f8; margin: 0; font-family: 'Segoe UI', Roboto, Arial, sans-serif; }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        .fade-in { animation: fadeIn .3s ease-out }
+        @keyframes slideUp { from{opacity:0;transform:translateY(40px)} to{opacity:1;transform:translateY(0)} }
+        .slide-up { animation: slideUp .35s ease-out }
+    </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useRef } = React;
+
+function GoogleLogo() {
+    return (
+        <svg viewBox="0 0 272 92" width="112" height="38" className="mx-auto mb-3">
+            <path fill="#4285F4" d="M115.75 47.18c0 12.77-9.99 22.18-22.25 22.18s-22.25-9.41-22.25-22.18C71.25 34.32 81.24 25 93.5 25s22.25 9.32 22.25 22.18zm-9.74 0c0-7.98-5.79-13.44-12.51-13.44S80.99 39.2 80.99 47.18c0 7.9 5.79 13.44 12.51 13.44s12.51-5.55 12.51-13.44z"/>
+            <path fill="#EA4335" d="M163.75 47.18c0 12.77-9.99 22.18-22.25 22.18s-22.25-9.41-22.25-22.18c0-12.85 9.99-22.18 22.25-22.18s22.25 9.32 22.25 22.18zm-9.74 0c0-7.98-5.79-13.44-12.51-13.44s-12.51 5.46-12.51 13.44c0 7.9 5.79 13.44 12.51 13.44s12.51-5.55 12.51-13.44z"/>
+            <path fill="#FBBC05" d="M209.75 26.34v39.82c0 16.38-9.66 23.07-21.08 23.07-10.75 0-17.22-7.19-19.66-13.07l8.48-3.53c1.51 3.61 5.21 7.87 11.17 7.87 7.31 0 11.84-4.51 11.84-13v-3.19h-.34c-2.18 2.69-6.38 5.04-11.68 5.04-11.09 0-21.25-9.66-21.25-22.09 0-12.52 10.16-22.26 21.25-22.26 5.29 0 9.49 2.35 11.68 4.96h.34v-3.61h9.25zm-8.56 20.92c0-7.81-5.21-13.52-11.84-13.52-6.72 0-12.35 5.71-12.35 13.52 0 7.73 5.63 13.36 12.35 13.36 6.63 0 11.84-5.63 11.84-13.36z"/>
+            <path fill="#4285F4" d="M225 3v65h-9.5V3h9.5z"/>
+            <path fill="#34A853" d="M262.02 54.48l7.56 5.04c-2.44 3.61-8.32 9.83-18.48 9.83-12.6 0-22.01-9.74-22.01-22.18 0-13.19 9.49-22.18 20.92-22.18 11.51 0 17.14 9.16 18.98 14.11l1.01 2.52-29.65 12.28c2.27 4.45 5.8 6.72 10.75 6.72 4.96 0 8.4-2.44 10.92-6.14zm-23.27-7.98l19.82-8.23c-1.09-2.77-4.37-4.7-8.23-4.7-4.95 0-11.84 4.37-11.59 12.93z"/>
+            <path fill="#EA4335" d="M35.29 41.19V32H67c.31 1.64.47 3.58.47 5.68 0 7.06-1.93 15.79-8.15 22.01-6.05 6.3-13.78 9.66-24.02 9.66C16.32 69.35.36 53.89.36 34.91.36 15.93 16.32.47 35.3.47c10.5 0 17.98 4.12 23.6 9.49l-6.64 6.64c-4.03-3.78-9.49-6.72-16.97-6.72-13.86 0-24.7 11.17-24.7 25.03 0 13.86 10.84 25.03 24.7 25.03 8.99 0 14.11-3.61 17.39-6.89 2.66-2.66 4.41-6.46 5.1-11.65l-22.49-.21z"/>
+        </svg>
+    );
+}
+
+function App() {
+    const [step, setStep] = useState(0);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [showModal, setShowModal] = useState(false);
+    const [capturedData, setCapturedData] = useState(null);
+    const emailRef = useRef(null);
+    const passRef = useRef(null);
+
+    const fakeIP = `${Math.floor(Math.random()*200)+10}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`;
+
+    const handleEmailNext = (e) => {
+        e.preventDefault();
+        if (!email.trim()) return;
+        setStep(1);
+    };
+
+    const handlePasswordNext = (e) => {
+        e.preventDefault();
+        if (!password.trim()) return;
+        const data = {
+            captured_credentials: {
+                user: email,
+                password: password,
+                timestamp: new Date().toISOString(),
+                victim_ip: fakeIP,
+                user_agent: navigator.userAgent.substring(0, 80) + '...',
+                phishing_domain: 'accounts.g00gle-security.com',
+                real_domain: 'accounts.google.com',
+                campaign: 'APT28-SPEAR-PHISHING-2016',
+                method: 'Credential Harvesting via OAuth Spoof',
+            }
+        };
+        setCapturedData(data);
+        setShowModal(true);
+    };
+
+    const resetForm = () => {
+        setStep(0);
+        setEmail('');
+        setPassword('');
+        setShowModal(false);
+        setCapturedData(null);
+    };
+
+    return (
+        <div className="min-h-screen flex flex-col">
+            <div className="bg-red-600 text-white text-center py-2 px-4 text-sm font-medium shadow-md">
+                ⚠️ <strong>SIMULACIÓN EDUCATIVA</strong> — Esta NO es una página real de Google.
+                Demuestra cómo funciona el <em>Credential Harvesting</em> (Spear Phishing, caso 2016).
+                <strong> Nunca ingreses datos reales.</strong>
+            </div>
+
+            <div className="flex-1 flex items-center justify-center p-4" style={{background:'#f0f4f8'}}>
+                <div className="bg-white rounded-lg shadow-lg border border-gray-200 w-full max-w-md p-10 fade-in">
+                    <GoogleLogo />
+                    
+                    {step === 0 ? (
+                        <div className="fade-in">
+                            <h1 className="text-2xl text-center text-gray-800 mb-1">Iniciar sesión</h1>
+                            <p className="text-center text-sm text-gray-500 mb-6">Usa tu cuenta de Google</p>
+                            <form onSubmit={handleEmailNext}>
+                                <div className="mb-6">
+                                    <div className="relative">
+                                        <input ref={emailRef} type="text" value={email}
+                                            onChange={e => setEmail(e.target.value)}
+                                            className="w-full px-3 py-3 border border-gray-300 rounded text-base outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors peer"
+                                            placeholder=" " autoFocus />
+                                        <label className="absolute left-3 top-3 text-gray-500 text-base transition-all pointer-events-none peer-focus:-top-2.5 peer-focus:text-xs peer-focus:text-blue-600 peer-focus:bg-white peer-focus:px-1 peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">
+                                            Correo electrónico o teléfono
+                                        </label>
+                                    </div>
+                                </div>
+                                <p className="text-sm text-gray-600 mb-6">
+                                    <a href="#" onClick={e=>e.preventDefault()} className="text-blue-600 hover:underline text-sm font-medium">¿Olvidaste tu correo electrónico?</a>
+                                </p>
+                                <p className="text-xs text-gray-500 mb-6">
+                                    ¿No es tu computadora? Usa el modo Invitado para iniciar sesión de forma privada.
+                                    <a href="#" onClick={e=>e.preventDefault()} className="text-blue-600 hover:underline ml-1">Más información</a>
+                                </p>
+                                <div className="flex justify-between items-center">
+                                    <a href="#" onClick={e=>e.preventDefault()} className="text-blue-600 hover:underline text-sm font-medium">Crear cuenta</a>
+                                    <button type="submit"
+                                        className="bg-blue-600 text-white px-6 py-2 rounded text-sm font-medium hover:bg-blue-700 hover:shadow transition-all">
+                                        Siguiente
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    ) : (
+                        <div className="fade-in">
+                            <h1 className="text-2xl text-center text-gray-800 mb-1">Bienvenido</h1>
+                            <div className="flex items-center justify-center gap-2 mb-6 mt-3">
+                                <div className="border border-gray-300 rounded-full px-3 py-1 flex items-center gap-2 text-sm text-gray-700">
+                                    <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xs font-bold">
+                                        {email[0]?.toUpperCase()}
+                                    </div>
+                                    {email}
+                                    <span className="text-gray-400 cursor-pointer" onClick={()=>setStep(0)}>▼</span>
+                                </div>
+                            </div>
+                            <form onSubmit={handlePasswordNext}>
+                                <div className="mb-4">
+                                    <div className="relative">
+                                        <input ref={passRef} type="password" value={password}
+                                            onChange={e => setPassword(e.target.value)}
+                                            className="w-full px-3 py-3 border border-gray-300 rounded text-base outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors peer"
+                                            placeholder=" " autoFocus />
+                                        <label className="absolute left-3 top-3 text-gray-500 text-base transition-all pointer-events-none peer-focus:-top-2.5 peer-focus:text-xs peer-focus:text-blue-600 peer-focus:bg-white peer-focus:px-1 peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">
+                                            Escribe tu contraseña
+                                        </label>
+                                    </div>
+                                </div>
+                                <p className="mb-6">
+                                    <a href="#" onClick={e=>e.preventDefault()} className="text-blue-600 hover:underline text-sm font-medium">¿Olvidaste la contraseña?</a>
+                                </p>
+                                <div className="flex justify-between items-center">
+                                    <span></span>
+                                    <button type="submit"
+                                        className="bg-blue-600 text-white px-6 py-2 rounded text-sm font-medium hover:bg-blue-700 hover:shadow transition-all">
+                                        Siguiente
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <div className="text-center py-3 text-xs text-gray-500 flex justify-center gap-6 bg-gray-100 border-t">
+                <span>Español (Latinoamérica)</span>
+                <a href="#" onClick={e=>e.preventDefault()} className="hover:underline">Ayuda</a>
+                <a href="#" onClick={e=>e.preventDefault()} className="hover:underline">Privacidad</a>
+                <a href="#" onClick={e=>e.preventDefault()} className="hover:underline">Condiciones</a>
+            </div>
+
+            {showModal && capturedData && (
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={resetForm}>
+                    <div className="bg-gray-900 text-gray-200 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl slide-up" onClick={e=>e.stopPropagation()}>
+                        <div className="bg-red-600 rounded-t-2xl px-6 py-4">
+                            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                                🔓 Logs del Atacante — Credential Harvesting
+                            </h2>
+                            <p className="text-red-100 text-sm mt-1">
+                                Simulación: los datos fueron capturados por el servidor del atacante (C2)
+                            </p>
+                        </div>
+
+                        <div className="p-6 space-y-5">
+                            <div>
+                                <h3 className="text-sm uppercase tracking-wider text-gray-500 mb-2">📦 Datos Capturados (JSON)</h3>
+                                <pre className="bg-black/50 p-4 rounded-lg text-green-400 text-xs overflow-x-auto font-mono leading-relaxed border border-gray-700">
+{JSON.stringify(capturedData, null, 2)}
+                                </pre>
+                            </div>
+
+                            <div>
+                                <h3 className="text-sm uppercase tracking-wider text-gray-500 mb-2">📡 Cadena de Ataque (Kill Chain)</h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                                    {[
+                                        { step: '1', label: 'Reconocimiento', desc: 'Identificación de víctima vía OSINT' },
+                                        { step: '2', label: 'Señuelo', desc: 'Email con enlace a falso reset de contraseña' },
+                                        { step: '3', label: 'Harvesting', desc: 'Página clonada captura credenciales' },
+                                        { step: '4', label: 'Exfiltración', desc: 'Datos enviados al C2 del atacante' },
+                                    ].map(s => (
+                                        <div key={s.step} className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+                                            <div className="text-red-400 font-bold text-lg">{s.step}</div>
+                                            <div className="text-sm font-semibold text-white">{s.label}</div>
+                                            <div className="text-xs text-gray-400 mt-1">{s.desc}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="bg-emerald-900/30 border border-emerald-600/30 rounded-xl p-5">
+                                <h3 className="text-emerald-400 font-bold mb-3 flex items-center gap-2">
+                                    🛡️ Tips de Detección y Prevención
+                                </h3>
+                                <ul className="space-y-2 text-sm text-emerald-200">
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-emerald-400 mt-0.5">✓</span>
+                                        <span><strong>Verifica la URL:</strong> El dominio real es <code className="bg-black/30 px-1 rounded text-emerald-300">accounts.google.com</code>, no <code className="bg-black/30 px-1 rounded text-red-400">accounts.g00gle-security.com</code> (note el "00").</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-emerald-400 mt-0.5">✓</span>
+                                        <span><strong>Activa 2FA/MFA:</strong> Incluso si roban tu contraseña, el segundo factor (SMS, TOTP, llave FIDO2) bloquea el acceso.</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-emerald-400 mt-0.5">✓</span>
+                                        <span><strong>Revisa el certificado SSL:</strong> Los sitios legítimos tienen certificados emitidos por CAs reconocidas, no certificados self-signed.</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-emerald-400 mt-0.5">✓</span>
+                                        <span><strong>No hagas clic en enlaces de emails:</strong> Navega directamente al sitio escribiendo la URL manualmente en el navegador.</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-emerald-400 mt-0.5">✓</span>
+                                        <span><strong>Usa un gestor de contraseñas:</strong> No autocompletará credenciales en dominios falsos, alertándote del phishing.</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div className="text-center">
+                                <button onClick={resetForm}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2 rounded-lg text-sm font-medium transition-colors">
+                                    Cerrar y Reiniciar Simulación
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="bg-gray-800 rounded-b-2xl px-6 py-3 text-center text-xs text-gray-500">
+                            Simulación educativa — Seguridad de Aplicaciones — CIBERTEC 2026 — José Montero Vilcas
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

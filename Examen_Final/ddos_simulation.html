@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación DDoS - Caso Dyn / Mirai Botnet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @keyframes pulse-red { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.4)} 50%{box-shadow:0 0 12px 4px rgba(239,68,68,.6)} }
+        @keyframes pulse-green { 0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.4)} 50%{box-shadow:0 0 12px 4px rgba(34,197,94,.6)} }
+        @keyframes packet-move { 0%{opacity:0;transform:translateX(0) scale(.5)} 40%{opacity:1;transform:scale(1)} 100%{opacity:0;transform:translateX(var(--tx)) translateY(var(--ty)) scale(.3)} }
+        .pulse-red{animation:pulse-red 1s infinite} .pulse-green{animation:pulse-green 1.5s infinite}
+        .packet{animation:packet-move var(--dur) linear forwards;position:absolute;left:var(--sx);top:var(--sy)}
+        body{background:#0f172a}
+        ::-webkit-scrollbar{width:6px} ::-webkit-scrollbar-track{background:#1e293b} ::-webkit-scrollbar-thumb{background:#475569;border-radius:3px}
+    </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+const BOTNET_DEVICES = [
+    { id: 1, name: 'Cámara IP', x: 5, y: 10 },
+    { id: 2, name: 'Router', x: 2, y: 40 },
+    { id: 3, name: 'Smart TV', x: 8, y: 70 },
+    { id: 4, name: 'Termostato', x: 18, y: 20 },
+    { id: 5, name: 'DVR', x: 15, y: 55 },
+    { id: 6, name: 'Impresora', x: 22, y: 85 },
+    { id: 7, name: 'Webcam', x: 28, y: 8 },
+    { id: 8, name: 'NAS', x: 30, y: 45 },
+];
+
+const LOG_MESSAGES_ATTACK = [
+    '[ALERTA] SYN Flood detectado desde 185.xx.xx.xx — 50,000 pps',
+    '[CRITICAL] Timeout excedido en resolver DNS — latencia > 2000 ms',
+    '[ALERTA] Tabla de conexiones TCP saturada (65535/65535)',
+    '[ERROR] Servicio DNS no responde — TTL expirado',
+    '[ALERTA] Tráfico UDP anómalo: 12 Gbps entrante en puerto 53',
+    '[CRITICAL] CPU del servidor al 98% — proceso named sin respuesta',
+    '[ERROR] Amplificación DNS detectada — ratio 1:54',
+    '[ALERTA] 230,000 IPs únicas atacando simultáneamente',
+    '[CRITICAL] Uptime degradado — clientes reportan SERVFAIL',
+    '[ERROR] Buffer overflow en cola de paquetes — descartando tráfico legítimo',
+];
+
+const LOG_MESSAGES_MITIGATION = [
+    '[INFO] Anycast activado — distribuyendo tráfico a 24 PoPs globales',
+    '[OK] Rate Limiting aplicado: máx 1000 req/s por IP origen',
+    '[INFO] Paquete filtrado por WAF — firma de Mirai detectada',
+    '[OK] Blackhole routing activado para IPs de C&C conocidas',
+    '[INFO] Scrubbing center absorbiendo 8 Gbps de tráfico malicioso',
+    '[OK] Regla GeoIP aplicada — bloqueando tráfico desde botnets Tier-3',
+    '[INFO] Cache DNS reconstruido — TTL extendido a 3600s',
+    '[OK] Conexiones legítimas priorizadas — QoS activo',
+    '[INFO] Firma IoT/Mirai añadida a ACL del firewall',
+    '[OK] Servidor estabilizado — latencia normalizada < 50 ms',
+];
+
+function MetricCard({ label, value, unit, color, icon }) {
+    const colorMap = {
+        red: 'text-red-400 border-red-500/30 bg-red-500/5',
+        green: 'text-green-400 border-green-500/30 bg-green-500/5',
+        yellow: 'text-yellow-400 border-yellow-500/30 bg-yellow-500/5',
+        blue: 'text-blue-400 border-blue-500/30 bg-blue-500/5',
+    };
+    return (
+        <div className={`border rounded-xl p-4 ${colorMap[color]} transition-all duration-500`}>
+            <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs uppercase tracking-wider opacity-70">{icon} {label}</span>
+            </div>
+            <div className="text-3xl font-mono font-bold">{value}<span className="text-sm ml-1 opacity-60">{unit}</span></div>
+        </div>
+    );
+}
+
+function BotnetVisualization({ attacking, mitigating }) {
+    const containerRef = useRef(null);
+    const [packets, setPackets] = useState([]);
+    const packetId = useRef(0);
+
+    useEffect(() => {
+        if (!attacking) { setPackets([]); return; }
+        const interval = setInterval(() => {
+            const device = BOTNET_DEVICES[Math.floor(Math.random() * BOTNET_DEVICES.length)];
+            const id = packetId.current++;
+            const blocked = mitigating && Math.random() > 0.3;
+            setPackets(prev => [...prev.slice(-30), { id, deviceX: device.x, deviceY: device.y, blocked }]);
+        }, mitigating ? 300 : 120);
+        return () => clearInterval(interval);
+    }, [attacking, mitigating]);
+
+    useEffect(() => {
+        if (packets.length === 0) return;
+        const timer = setTimeout(() => setPackets(prev => prev.slice(1)), 1500);
+        return () => clearTimeout(timer);
+    }, [packets]);
+
+    return (
+        <div ref={containerRef} className="relative w-full h-72 bg-slate-900/50 rounded-xl border border-slate-700 overflow-hidden">
+            <div className="absolute top-2 left-3 text-xs text-slate-500 uppercase tracking-wider">Red de Botnet Mirai — Visualización</div>
+
+            {BOTNET_DEVICES.map(d => (
+                <div key={d.id} className={`absolute flex flex-col items-center transition-all duration-300 ${attacking ? 'text-red-400' : 'text-slate-600'}`}
+                     style={{ left: `${d.x}%`, top: `${d.y}%` }}>
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs border ${attacking ? 'bg-red-500/20 border-red-500/40' : 'bg-slate-800 border-slate-700'}`}>
+                        📡
+                    </div>
+                    <span className="text-[9px] mt-0.5 opacity-60">{d.name}</span>
+                </div>
+            ))}
+
+            <div className={`absolute right-[12%] top-1/2 -translate-y-1/2 w-20 h-20 rounded-2xl flex flex-col items-center justify-center border-2 transition-all duration-500 ${
+                attacking && !mitigating ? 'bg-red-500/20 border-red-500 pulse-red text-red-300' :
+                mitigating ? 'bg-green-500/10 border-green-500/60 pulse-green text-green-300' :
+                'bg-slate-800 border-slate-600 text-slate-400'
+            }`}>
+                <span className="text-2xl">🖥️</span>
+                <span className="text-[10px] mt-1 font-mono">DNS Server</span>
+            </div>
+
+            {mitigating && (
+                <div className="absolute right-[9%] top-1/2 -translate-y-1/2 w-28 h-28 rounded-full border-2 border-dashed border-green-500/40 flex items-center justify-center">
+                    <span className="absolute -top-3 bg-slate-900 px-2 text-[9px] text-green-400 uppercase tracking-wider">Shield Activo</span>
+                </div>
+            )}
+
+            {packets.map(p => {
+                const tx = `calc(${85 - p.deviceX}% * 0.7)`;
+                const ty = `calc(${50 - p.deviceY}% * 0.4)`;
+                return (
+                    <div key={p.id} className="packet" style={{
+                        '--sx': `${p.deviceX + 4}%`, '--sy': `${p.deviceY + 2}%`,
+                        '--tx': tx, '--ty': ty, '--dur': '1.2s'
+                    }}>
+                        <div className={`w-2 h-2 rounded-full ${p.blocked ? 'bg-yellow-400' : 'bg-red-500'}`}></div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
+function App() {
+    const [attacking, setAttacking] = useState(false);
+    const [mitigating, setMitigating] = useState(false);
+    const [metrics, setMetrics] = useState({ cpu: 12, rps: 150, latency: 25, uptime: 99.99 });
+    const [logs, setLogs] = useState([
+        { time: new Date().toLocaleTimeString(), msg: '[INFO] Sistema DNS operativo — monitoreo activo', type: 'info' }
+    ]);
+    const [elapsed, setElapsed] = useState(0);
+    const logEndRef = useRef(null);
+    const intervalRef = useRef(null);
+
+    const addLog = useCallback((msg, type) => {
+        setLogs(prev => [...prev.slice(-50), { time: new Date().toLocaleTimeString(), msg, type }]);
+    }, []);
+
+    useEffect(() => {
+        if (logEndRef.current) logEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }, [logs]);
+
+    useEffect(() => {
+        if (!attacking) return;
+        const start = Date.now();
+        const t = setInterval(() => setElapsed(Math.floor((Date.now() - start) / 1000)), 1000);
+        return () => clearInterval(t);
+    }, [attacking]);
+
+    useEffect(() => {
+        intervalRef.current = setInterval(() => {
+            setMetrics(prev => {
+                if (!attacking) {
+                    return {
+                        cpu: Math.max(8, prev.cpu + (Math.random() * 4 - 2)),
+                        rps: Math.max(100, prev.rps + (Math.random() * 40 - 20)),
+                        latency: Math.max(15, prev.latency + (Math.random() * 6 - 3)),
+                        uptime: Math.min(99.99, prev.uptime + 0.001),
+                    };
+                }
+                if (mitigating) {
+                    return {
+                        cpu: Math.max(30, Math.min(55, prev.cpu + (Math.random() * 6 - 4))),
+                        rps: Math.max(2000, Math.min(8000, prev.rps + (Math.random() * 1000 - 600))),
+                        latency: Math.max(40, Math.min(120, prev.latency + (Math.random() * 20 - 14))),
+                        uptime: Math.min(99.5, prev.uptime + (Math.random() * 0.3)),
+                    };
+                }
+                return {
+                    cpu: Math.min(99, prev.cpu + Math.random() * 5 + 1),
+                    rps: Math.min(500000, prev.rps + Math.random() * 20000 + 5000),
+                    latency: Math.min(8000, prev.latency + Math.random() * 300 + 50),
+                    uptime: Math.max(0, prev.uptime - Math.random() * 3 - 0.5),
+                };
+            });
+        }, 400);
+        return () => clearInterval(intervalRef.current);
+    }, [attacking, mitigating]);
+
+    useEffect(() => {
+        if (!attacking) return;
+        const src = mitigating ? LOG_MESSAGES_MITIGATION : LOG_MESSAGES_ATTACK;
+        const type = mitigating ? 'mitigation' : 'attack';
+        const interval = setInterval(() => {
+            addLog(src[Math.floor(Math.random() * src.length)], type);
+        }, mitigating ? 2000 : 900);
+        return () => clearInterval(interval);
+    }, [attacking, mitigating, addLog]);
+
+    const handleAttack = () => {
+        if (attacking) {
+            setAttacking(false);
+            setMitigating(false);
+            setElapsed(0);
+            setMetrics({ cpu: 12, rps: 150, latency: 25, uptime: 99.99 });
+            addLog('[INFO] Ataque detenido — sistema restaurado a estado nominal', 'info');
+            return;
+        }
+        setAttacking(true);
+        setMitigating(false);
+        addLog('[CRITICAL] ¡ATAQUE DDoS DETECTADO! — Botnet Mirai activada con ~300,000 dispositivos IoT', 'attack');
+    };
+
+    const handleMitigate = () => {
+        if (!attacking || mitigating) return;
+        setMitigating(true);
+        addLog('[OK] === MITIGACIÓN ACTIVADA === Anycast + Rate Limiting + WAF desplegados', 'mitigation');
+    };
+
+    const cpuColor = metrics.cpu > 80 ? 'red' : metrics.cpu > 50 ? 'yellow' : 'green';
+    const latColor = metrics.latency > 1000 ? 'red' : metrics.latency > 200 ? 'yellow' : 'green';
+    const uptimeColor = metrics.uptime < 50 ? 'red' : metrics.uptime < 90 ? 'yellow' : 'green';
+    const rpsColor = metrics.rps > 100000 ? 'red' : metrics.rps > 10000 ? 'yellow' : 'blue';
+
+    return (
+        <div className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-6">
+            <header className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-3">
+                <div>
+                    <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                        🛡️ Simulación DDoS — Caso Dyn / Mirai Botnet (2016)
+                    </h1>
+                    <p className="text-sm text-slate-400 mt-1">
+                        Dashboard SRE — Monitoreo en tiempo real de infraestructura DNS bajo ataque volumétrico
+                    </p>
+                </div>
+                <div className="flex items-center gap-2">
+                    {attacking && (
+                        <span className="text-xs font-mono text-slate-400 bg-slate-800 px-3 py-1 rounded-full">
+                            ⏱ {Math.floor(elapsed / 60).toString().padStart(2,'0')}:{(elapsed % 60).toString().padStart(2,'0')}
+                        </span>
+                    )}
+                    <span className={`text-xs px-3 py-1 rounded-full font-semibold uppercase tracking-wider ${
+                        !attacking ? 'bg-green-500/20 text-green-400' :
+                        mitigating ? 'bg-blue-500/20 text-blue-400' :
+                        'bg-red-500/20 text-red-400'
+                    }`}>
+                        {!attacking ? '● Operativo' : mitigating ? '● Mitigando' : '● Bajo Ataque'}
+                    </span>
+                </div>
+            </header>
+
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 mb-6 text-amber-300 text-sm">
+                ⚠️ <strong>Aviso Educativo:</strong> Esta es una simulación con fines académicos. No se genera tráfico real.
+                Basada en el ataque a Dyn DNS del 21 de octubre de 2016, que afectó a Twitter, Netflix, Reddit y otros servicios.
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                <MetricCard label="Carga CPU" value={metrics.cpu.toFixed(1)} unit="%" color={cpuColor} icon="⚙️" />
+                <MetricCard label="Peticiones/s" value={metrics.rps >= 1000 ? (metrics.rps/1000).toFixed(1)+'K' : metrics.rps.toFixed(0)} unit="RPS" color={rpsColor} icon="📊" />
+                <MetricCard label="Latencia" value={metrics.latency >= 1000 ? (metrics.latency/1000).toFixed(1)+'s' : metrics.latency.toFixed(0)} unit={metrics.latency >= 1000 ? '' : 'ms'} color={latColor} icon="⏱" />
+                <MetricCard label="Disponibilidad" value={metrics.uptime.toFixed(2)} unit="%" color={uptimeColor} icon="🟢" />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+                <div className="lg:col-span-2">
+                    <BotnetVisualization attacking={attacking} mitigating={mitigating} />
+                </div>
+                <div className="flex flex-col gap-3">
+                    <button onClick={handleAttack}
+                        className={`w-full py-3 px-4 rounded-xl font-bold text-sm uppercase tracking-wider transition-all duration-300 ${
+                            attacking
+                                ? 'bg-slate-700 hover:bg-slate-600 text-slate-200 border border-slate-600'
+                                : 'bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-500/25'
+                        }`}>
+                        {attacking ? '⏹ Detener Ataque' : '⚡ Iniciar Ataque DDoS'}
+                    </button>
+                    <button onClick={handleMitigate} disabled={!attacking || mitigating}
+                        className={`w-full py-3 px-4 rounded-xl font-bold text-sm uppercase tracking-wider transition-all duration-300 ${
+                            !attacking || mitigating
+                                ? 'bg-slate-800 text-slate-600 cursor-not-allowed border border-slate-700'
+                                : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/25'
+                        }`}>
+                        🛡️ Activar Mitigación
+                    </button>
+                    <div className="bg-slate-900/60 border border-slate-700 rounded-xl p-4 flex-1">
+                        <h3 className="text-xs uppercase tracking-wider text-slate-500 mb-3">Medidas de Mitigación</h3>
+                        <ul className="space-y-2 text-xs">
+                            {[
+                                { label: 'Anycast Routing', active: mitigating },
+                                { label: 'Rate Limiting', active: mitigating },
+                                { label: 'WAF / Filtrado', active: mitigating },
+                                { label: 'Blackhole Routing', active: mitigating },
+                                { label: 'Scrubbing Center', active: mitigating },
+                            ].map((m, i) => (
+                                <li key={i} className={`flex items-center gap-2 transition-all duration-500 ${m.active ? 'text-green-400' : 'text-slate-600'}`}>
+                                    <span className={`w-2 h-2 rounded-full ${m.active ? 'bg-green-400' : 'bg-slate-700'}`}></span>
+                                    {m.label}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div className="bg-slate-900/70 border border-slate-700 rounded-xl overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-2 border-b border-slate-700">
+                    <h3 className="text-xs uppercase tracking-wider text-slate-500">📋 Panel de Logs — Eventos de Seguridad</h3>
+                    <span className="text-[10px] text-slate-600 font-mono">{logs.length} eventos</span>
+                </div>
+                <div className="h-48 overflow-y-auto p-3 font-mono text-xs space-y-1">
+                    {logs.map((l, i) => (
+                        <div key={i} className={`flex gap-2 ${
+                            l.type === 'attack' ? 'text-red-400' :
+                            l.type === 'mitigation' ? 'text-green-400' : 'text-slate-500'
+                        }`}>
+                            <span className="text-slate-600 shrink-0">{l.time}</span>
+                            <span>{l.msg}</span>
+                        </div>
+                    ))}
+                    <div ref={logEndRef} />
+                </div>
+            </div>
+
+            <footer className="mt-6 text-center text-xs text-slate-600">
+                Simulación educativa — Seguridad de Aplicaciones — CIBERTEC 2026 — José Montero Vilcas
+            </footer>
+        </div>
+    );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
